@@ -32,17 +32,22 @@ public class IntQueueTest {
 
   private IntQueue mQueue;
   private List<Integer> testList;
+  private ArrayIntQueue arrayIntQueue;
+  private List<Integer> bigTestList;
 
   /**
    * Called before each test.
    */
   @Before
   public void setUp() {
-    // comment/uncomment these lines to test each class
+    // For specification testing
     // mQueue = new LinkedIntQueue();
     mQueue = new ArrayIntQueue();
-
     testList = new ArrayList<>(List.of(1, 2, 3));
+
+    // For structural testing
+    arrayIntQueue = new ArrayIntQueue();
+    bigTestList = new ArrayList<>(List.of(1, 2, 3, 4, 5, 6, 7, 8, 9));
   }
 
   @Test
@@ -53,8 +58,8 @@ public class IntQueueTest {
 
   @Test
   public void testNotEmpty() {
-    final Integer TEST_VALUE = 1;
-    mQueue.enqueue(TEST_VALUE);
+    final Integer EXPECTED_VALUE = 1;
+    mQueue.enqueue(EXPECTED_VALUE);
     assertFalse(mQueue.isEmpty());
   }
 
@@ -65,9 +70,9 @@ public class IntQueueTest {
 
   @Test
   public void testPeekNoEmptyQueue() {
-    final Integer TEST_VALUE = 1;
-    mQueue.enqueue(TEST_VALUE);
-    assertEquals(mQueue.peek(), TEST_VALUE);
+    final Integer EXPECTED_VALUE = 1;
+    mQueue.enqueue(EXPECTED_VALUE);
+    assertEquals(mQueue.peek(), EXPECTED_VALUE);
   }
 
   @Test
@@ -101,7 +106,6 @@ public class IntQueueTest {
     assertNull(mQueue.dequeue());
   }
 
-
   @Test
   public void testContent() throws IOException {
     // This is an example unit test
@@ -123,5 +127,40 @@ public class IntQueueTest {
     }
   }
 
+  // Structural Tests
 
+  @Test
+  public void testArrayIntQueueClear() {
+    for (int i = 0; i < testList.size(); i++) {
+      mQueue.enqueue(testList.get(i));
+      assertEquals(testList.getFirst(), mQueue.peek());
+      assertEquals(i + 1, mQueue.size());
+    }
+
+    arrayIntQueue.clear();
+
+    assertTrue(arrayIntQueue.isEmpty());
+  }
+
+  @Test
+  public void testArrayIntQueueEnsureCapacity() {
+    // Force maximum capacity with enqueue
+    bigTestList.forEach(integer -> arrayIntQueue.enqueue(integer));
+
+    // Dequeue to move head pointer to middle of array
+    arrayIntQueue.dequeue();
+
+    // Enqueue more elements beyond initial capacity
+    bigTestList.forEach(integer -> arrayIntQueue.enqueue(integer));
+
+    // Test that capacity has increased
+    final int EXPECTED_SIZE = 2 * bigTestList.size() - 1;
+    assertEquals(EXPECTED_SIZE, arrayIntQueue.size());
+
+    // Test that logical queue order is preserved
+    for (int i = 0; i < EXPECTED_SIZE; ++i) {
+      int bigTestListIndex = (i + 1) % bigTestList.size();
+      assertEquals(bigTestList.get(bigTestListIndex), arrayIntQueue.dequeue());
+    }
+  }
 }
